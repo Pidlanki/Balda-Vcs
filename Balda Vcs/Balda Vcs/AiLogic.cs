@@ -4,11 +4,26 @@ using System.Text.RegularExpressions;
 
 namespace Balda_Vcs {
 	[Serializable]
-	class AiLogic : MainLogic {
+	public class AiLogic : MainLogic {
+		/// <summary>
+		/// class for temporary unfiltred words
+		/// </summary>
 		private class TempAiWords {
+			/// <summary>
+			/// unfiltered combinations of letters
+			/// </summary>
 			public List<string> words = new List<string>();
+			/// <summary>
+			/// coordinates of new letter in word in list words
+			/// </summary>
 			public List<(int x, int y)> coordinates = new List<(int x, int y)>();
+			/// <summary>
+			/// list of current moves that makes in the turn
+			/// </summary>
 			public List<(int x, int y)> AiMoves = new List<(int x, int y)>();
+			/// <summary>
+			/// Max length of word that can be combined by AI
+			/// </summary>
 			public int MaxLength = 10;
 			public int CurrentMaxLength;
 		}
@@ -20,26 +35,37 @@ namespace Balda_Vcs {
 
 
 		private bool difficulty;
+		[NonSerialized]
 		private TempAiWords tempAiWords;
+		[NonSerialized]
 		private AiWord aiWord;
-
+		/// <summary>
+		/// adjacency matrix
+		/// </summary>
+		[NonSerialized]
 		private char[,] matrix;
-		//int moves_count;//counts the number of movements in the turn
-
+		
+		public AiLogic() {
+		}
 		public AiLogic(bool difficulty) {
 			this.difficulty = difficulty;
-			//moves_count = default;
 			CleanAi();
 		}
-
+		/// <summary>
+		/// Clean AI data before turn
+		/// </summary>
 		void CleanAi() {
 			matrix = new char[ROW, COL];
 			tempAiWords = new TempAiWords();
 			aiWord = new AiWord();
 			currentWord = "";
 		}
+		/// <summary>
+		/// Main process of the game
+		/// </summary>
 		protected override void Game() {
 			FirstWordInitialization();
+			SerializeGame serializer = new SerializeGame();
 			do {
 				CleanAi();
 				ShowPlayField();
@@ -49,11 +75,15 @@ namespace Balda_Vcs {
 				SetColor(ConsoleColor.Blue, ConsoleColor.Black);
 				var isEndMoving = step_count % 2 == 1 ? AiMoving() : AiMoving();
 				if (isEndMoving) CountingPoints();
+				serializer.SerializeAI(this);
 				CleanScrAndContinue();
 			} while (CheckingFreePlaces());
 			CheckForWinner();
 		}
-
+		/// <summary>
+		/// Process of ai movement
+		/// </summary>
+		/// <returns>true when end turn</returns>
 		private bool AiMoving() {
 			FormingMatrix();
 			string tempWord;
@@ -79,7 +109,9 @@ namespace Balda_Vcs {
 
 			return true;
 		}
-
+		/// <summary>
+		/// Choose word in filtered list of word that AI make
+		/// </summary>
 		private void ChooseWord() {
 			int randomIndex = random.Next(aiWord.Words.Count - 1);
 			if (difficulty) {
@@ -103,7 +135,9 @@ namespace Balda_Vcs {
 			aiWord.LetterCoordinates = new List<(int x, int y)>();
 			aiWord.Letters = new List<char>();
 		}
-
+		/// <summary>
+		/// Filtered list of words in new list by comparing them with Library
+		/// </summary>
 		private void Filter() {
 			/*
 			string[] splitedWord = new string[2];
@@ -162,7 +196,14 @@ namespace Balda_Vcs {
 			if (nextPos == 1 || nextPos == 2)
 				FindWords(x, y - 1, newX, newY, tempWord);
 		}
-
+		/// <summary>
+		/// find all possible combination of letter
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="newX"></param>
+		/// <param name="newY"></param>
+		/// <param name="tempWord"></param>
 		private void FindWords(int x, int y, int newX, int newY, string tempWord) {
 			if (tempWord.Length >= tempAiWords.CurrentMaxLength) return;
 			int nextPos = CheckNextPosition(x, y, newX);
@@ -207,7 +248,12 @@ namespace Balda_Vcs {
 			}
 			tempAiWords.CurrentMaxLength++;
 		}
-
+		/// <summary>
+		/// Check neighbor when forming the adjasency  matrix
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <returns></returns>
 		private bool CheckNeighbors(int x, int y) {
 			bool r = false, l = false, u = false, d = false;
 			if (x + 1 < COL)

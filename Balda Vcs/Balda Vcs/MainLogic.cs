@@ -7,24 +7,47 @@ using System.Threading.Tasks;
 
 namespace Balda_Vcs {
 	[Serializable]
-	class MainLogic : GameInterface {
-
-		protected Dictionary<string, int> Library;
-		protected string f_word;
-		protected string currentWord; //the current word collected
+	public class MainLogic : GameInterface {
+		/// <summary>
+		/// List of words library
+		/// </summary>
 		[NonSerialized]
+		protected Dictionary<string, int> Library;
+		/// <summary>
+		/// first word in the field
+		/// </summary>
+		protected string f_word;
+		/// <summary>
+		/// A word that is composed at the moment
+		/// </summary>
+		[NonSerialized]
+		protected string currentWord;
 		string wordsFileName = "words.txt";
-
+		/// <summary>
+		/// list of current moves that makes in the turn
+		/// </summary>
+		[NonSerialized]
 		private List<int> moves;
+
 		protected int step_count = 0;//counter moves
-		protected int x, y; //coordinates of active table cell
-		protected int temp_x, temp_y; // temporary variables to remember the cell with the letter inserted
+		/// <summary>
+		/// coordinates of active table cell
+		/// </summary>
+		[NonSerialized]
+		protected int x, y;
+		/// <summary>
+		/// coordinates of input letter cell
+		/// </summary>
+		[NonSerialized]
+		protected int temp_x, temp_y;
 
 		public MainLogic() {
 			moves = new List<int>();
 			LoadWords();
 		}
-
+		/// <summary>
+		/// Load words from file to Dictionary
+		/// </summary>
 		protected void LoadWords() {
 			Library = new Dictionary<string, int>();
 			int i = 0;
@@ -36,9 +59,7 @@ namespace Balda_Vcs {
 						Library.Add(word, i++);
 					}
 				}
-
 			}
-
 		}
 
 		public char GameMenu() {
@@ -63,8 +84,23 @@ namespace Balda_Vcs {
 			ch = char.Parse(Console.ReadLine() ?? throw new InvalidOperationException());
 			return ch;
 		}
+		/// <summary>
+		/// Game menu that call when player deside to load old game
+		/// </summary>
+		/// <returns>return char to know if player want to play again</returns>
+		public char ContinueMenu() {
+			LoadWords();
+			Game();
+			Console.Write("Want to play again?\n(y/n)>>");
+			char ch = char.Parse(Console.ReadLine() ?? throw new InvalidOperationException());
+			return ch;
+		}
+		/// <summary>
+		/// Main process of the game
+		/// </summary>
 		protected virtual void Game() {
 			FirstWordInitialization();
+			SerializeGame serializer = new SerializeGame();
 			do {
 				currentWord = "";
 				ShowPlayField();
@@ -74,10 +110,13 @@ namespace Balda_Vcs {
 				SetColor(ConsoleColor.Blue, ConsoleColor.Black);
 				var isEndMoving = Moving();
 				if (isEndMoving) CountingPoints();
+				serializer.SerializePVP(this);
 			} while (CheckingFreePlaces());
 			CheckForWinner();
 		}
-
+		/// <summary>
+		/// initialize and putted a first word of the game
+		/// </summary>
 		protected void FirstWordInitialization() {
 			if (f_word == "r") {
 				while (f_word.Length != COL) {
@@ -110,6 +149,10 @@ namespace Balda_Vcs {
 				} while (CheckPos() || !isCorrect);
 			}
 		}
+		/// <summary>
+		/// Process of movement on the table
+		/// </summary>
+		/// <returns>true if turn ended corectly</returns>
 		protected bool Moving() {
 			int count = 0;
 			bool isNewLatUsed = false;
@@ -189,6 +232,7 @@ namespace Balda_Vcs {
 			if (FirstPlayer.PlPoints > SecondPlayer.PlPoints) Console.WriteLine("The first player wins!");
 			else if (FirstPlayer.PlPoints < SecondPlayer.PlPoints) Console.WriteLine("The second player wins!");
 			else Console.WriteLine("Draw!");
+
 		}
 		/// <summary>
 		/// Checking neighbors for moving to them
@@ -209,7 +253,12 @@ namespace Balda_Vcs {
 			}
 			else return true;
 		}
-
+		/// <summary>
+		/// checking if next move is new and was not used before in this turn
+		/// </summary>
+		/// <param name="x">coordinate x</param>
+		/// <param name="y">coordinate y</param>
+		/// <returns>true if next move not first in the turn</returns>
 		bool CheckPastPos(int x, int y) {
 			if (moves.Count != 0) {
 				for (int i = 0; i < moves.Count; i += 2) {
@@ -240,7 +289,13 @@ namespace Balda_Vcs {
 
 			return false;
 		}
-
+		/// <summary>
+		/// make move and adding a letter to current word if coordinate is correct
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="isNewLatUsed">true if new letter was used in this turn</param>
+		/// <returns>true if adding was succesfull</returns>
 		bool MakeMove(int x, int y, ref bool isNewLatUsed) {
 			char letter;
 			if (x < ROW && y < COL && x >= 0 && y >= 0) {
@@ -268,7 +323,11 @@ namespace Balda_Vcs {
 			}
 			return false;
 		}
-
+		/// <summary>
+		/// Compare current word with Library to end the turn
+		/// </summary>
+		/// <param name="isNewLatUsed"></param>
+		/// <returns>true if turn ended succesfully</returns>
 		bool EndTurn(ref bool isNewLatUsed) {
 			bool incorrectPos = false;
 			if (FirstPlayer.PlWords.Contains(currentWord) || SecondPlayer.PlWords.Contains(currentWord) || currentWord == f_word) {

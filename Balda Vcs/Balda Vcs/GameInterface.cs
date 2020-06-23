@@ -8,14 +8,15 @@ using System.Threading.Tasks;
 
 namespace Balda_Vcs {
 	[Serializable]
-	class GameInterface {
+	public class GameInterface {
 		
 		protected (int PlPoints, List<string> PlWords) FirstPlayer;
 		protected (int PlPoints, List<string> PlWords) SecondPlayer;
-		[NonSerialized]
+		
 		protected readonly int ROW = 5;//variables are responsible for the size of the field
-		[NonSerialized]
+		
 		protected readonly int COL = 5;
+		
 		protected  Random random = new Random();
 		protected char[,] _table;
 
@@ -36,6 +37,9 @@ namespace Balda_Vcs {
 			Console.ForegroundColor = text;
 			Console.BackgroundColor = background;
 		}
+		/// <summary>
+		/// Draw a title of the game
+		/// </summary>
 		public void LoadTitle() {
 			using (FileStream reader = new FileStream("title.txt", FileMode.Open, FileAccess.Read)) {
 				using (StreamReader sr = new StreamReader(reader, Encoding.Default)) {
@@ -63,7 +67,9 @@ namespace Balda_Vcs {
 				}
 			}
 		}
-
+		/// <summary>
+		/// fill play table with special symbol '-'
+		/// </summary>
 		protected void FillPlayTable() {
 			_table = new char[ROW, COL];
 			for (int i = 0; i < ROW; i++) {
@@ -105,7 +111,10 @@ namespace Balda_Vcs {
 			Console.WriteLine("\b\b.");
 			Console.WriteLine($"Points: {SecondPlayer.PlPoints}\n");
 		}
-
+		/// <summary>
+		/// Check the table on existing a free cell to deside if game can be continued
+		/// </summary>
+		/// <returns> true if have free cells</returns>
 		protected bool CheckingFreePlaces() {
 			for (int i = 0; i < ROW; i++) {
 				for (int j = 0; j < COL; j++) {
@@ -114,7 +123,9 @@ namespace Balda_Vcs {
 			}
 			return false;
 		}
-
+		/// <summary>
+		/// Just make a pause before clear the screen
+		/// </summary>
 		protected void CleanScrAndContinue() {
 			Console.Write("Tap any key to continue...");
 			Console.ReadKey(true);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,6 +16,8 @@ namespace Balda_Vcs {
 
 			Balda.LoadTitle();
 			do {
+				SerializerMenu serializerMenu = new SerializerMenu();
+				serializerMenu.Menu();
 				while (ch != 'a' && ch != 'b') {
 					Balda.Show1Menu();
 					ch = char.Parse(Console.ReadLine());
@@ -35,6 +38,8 @@ namespace Balda_Vcs {
 					default:
 						break;
 				}
+
+
 			} while (ch != 'n');
 
 		}
